@@ -8,7 +8,7 @@ const Footer = () => {
         {/* Brand */}
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-neon-cyan" />
-          <span className="font-orbitron font-bold text-lg tracking-wider chrome-text">DOPPELGANGER</span>
+          <span className="font-orbitron font-bold text-lg tracking-wider chrome-text">STYLEFORGE</span>
         </div>
 
         {/* Links */}
@@ -21,7 +21,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <p className="text-chrome-700 text-xs font-inter">
-          © 2026 Doppelganger — AI Fashion Lab
+          © 2026 StyleForge — AI Fashion Lab
         </p>
       </div>
     </footer>

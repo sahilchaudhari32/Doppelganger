@@ -8,7 +8,7 @@ const Navbar = () => {
       <Link to="/" className="flex items-center gap-2 group">
         <Sparkles className="w-6 h-6 text-neon-cyan group-hover:text-neon-pink transition-colors duration-300" />
         <span className="font-orbitron font-bold text-xl tracking-wider chrome-text">
-          DOPPELGANGER
+          STYLEFORGE
         </span>
       </Link>
 
