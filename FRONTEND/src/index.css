@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;500;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background-primary text-chrome-100 font-inter antialiased overflow-x-hidden;
+    /* subtle background pattern to fit futurism */
+    background-image: 
+      radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.03) 0%, transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
+  }
+}
+
+@layer components {
+  /* Utility classes directly referenced from the Spec */
+  .glass-panel {
+    @apply bg-[rgba(255,255,255,0.05)] backdrop-blur-md border border-[rgba(255,255,255,0.1)] rounded-xl;
+  }
+  
+  .glass-card-hover {
+    @apply transition-all duration-300 hover:scale-[1.02] hover:border-neon-cyan hover:shadow-neon-cyan;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+  }
+  
+  .chrome-text {
+    @apply text-gradient bg-chrome-gradient;
+  }
+  
+  .neon-text-primary {
+    @apply text-gradient bg-neon-gradient;
+  }
+
+  .chrome-button {
+    @apply bg-chrome-gradient border border-chrome-500 rounded-lg px-5 py-3 text-background-primary font-space font-bold uppercase tracking-wider transition-all duration-300;
+  }
+
+  .chrome-button:hover {
+    @apply shadow-neon-pink scale-105 border-neon-pink text-neon-pink bg-none bg-background-secondary;
+  }
+}
