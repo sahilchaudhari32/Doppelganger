@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react';
+import { Scissors, Anvil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
@@ -7,7 +7,10 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Brand */}
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-neon-cyan" />
+          <div className="relative flex items-center justify-center w-6 h-6">
+            <Anvil className="w-5 h-5 text-chrome-400 absolute bottom-0 opacity-80" />
+            <Scissors className="w-4 h-4 text-neon-pink absolute top-0 -rotate-45" />
+          </div>
           <span className="font-orbitron font-bold text-lg tracking-wider chrome-text">STYLEFORGE</span>
         </div>
 

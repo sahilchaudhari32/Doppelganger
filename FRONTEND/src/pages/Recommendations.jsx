@@ -3,41 +3,45 @@ import { useSearchParams } from 'react-router-dom';
 import { getRecommendations } from '../services/recommendApi';
 import ProductCard from '../components/shared/ProductCard';
 import Loader from '../components/ui/Loader';
+import { ChromeButton } from '../components/ui/ChromeButton';
+import { GlassCard } from '../components/ui/GlassCard';
+import { useLocation } from 'react-router-dom';
 
 const Recommendations = () => {
   const [searchParams] = useSearchParams();
   const [recommendations, setRecommendations] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const fetchRecommendations = async () => {
+    setIsLoading(true);
+    // Parse tags from URL (e.g. ?tags=casual,streetwear)
+    const tagsParam = searchParams.get('tags');
+    const tags = tagsParam ? tagsParam.split(',') : [];
+
+    if (!tags.length) {
+      setIsLoading(false);
+      return; 
+    }
+
+    try {
+      const data = await getRecommendations(tags);
+      setRecommendations(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
-      // Parse tags from URL (e.g. ?tags=casual,streetwear)
-      const tagsParam = searchParams.get('tags');
-      const tags = tagsParam ? tagsParam.split(',') : [];
-
-      if (!tags.length) {
-        setIsLoading(false);
-        return; // Alternatively, fetch trending products if no tags are provided.
-      }
-
-      try {
-        const data = await getRecommendations(tags);
-        setRecommendations(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
+    // Automatically fetch on mount since data is already gathered
     fetchRecommendations();
   }, [searchParams]);
 
   if (isLoading) {
     return (
       <div className="pt-32 min-h-screen">
-        <Loader message="ASSEMBLING YOUR WARDROBE..." />
+        <Loader message="CALCULATING COSINE SIMILARITY..." />
       </div>
     );
   }
@@ -57,17 +61,17 @@ const Recommendations = () => {
         RECOMMENDED FOR YOU
       </h1>
       <p className="text-center font-space text-chrome-400 mb-12 max-w-2xl mx-auto flex items-center justify-center gap-2 flex-wrap">
-        Based on detected styles:
+        Based on detected styles vector: 
         {searchParams.get('tags')?.split(',').map(tag => (
-          <span key={tag} className="text-neon-cyan border border-neon-cyan/50 px-2 py-1 rounded text-xs uppercase bg-neon-cyan/10">
-            {tag.trim()}
-          </span>
+           <span key={tag} className="text-neon-cyan border border-neon-cyan/50 px-2 py-1 rounded text-xs uppercase bg-neon-cyan/10">
+             {tag.trim()}
+           </span>
         ))}
       </p>
 
       {recommendations.length === 0 ? (
         <div className="text-center font-space text-chrome-500">
-          No matching styles found in the database.
+           No matching styles found in the database.
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">

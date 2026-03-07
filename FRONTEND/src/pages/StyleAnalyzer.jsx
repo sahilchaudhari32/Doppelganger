@@ -12,6 +12,8 @@ const StyleAnalyzer = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState(null);
   
+
+  
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -34,8 +36,14 @@ const StyleAnalyzer = () => {
     }
   };
 
-  const startAnalysis = async () => {
-    if (!file) return;
+
+
+  const startAnalysis = async (e) => {
+    e.preventDefault();
+    if (!file) {
+      setError("Please upload an image first.");
+      return;
+    }
     
     setIsScanning(true);
     setError(null);
@@ -44,7 +52,6 @@ const StyleAnalyzer = () => {
       // Send to Backend
       const data = await uploadImage(file);
       
-      // Delay slightly for effect
       setTimeout(() => {
         setIsScanning(false);
         // Navigate to recommendations passing tags via query param
@@ -62,7 +69,7 @@ const StyleAnalyzer = () => {
     return (
       <div className="pt-32 px-8 min-h-screen flex flex-col items-center">
          <h1 className="font-orbitron text-4xl mb-4 chrome-text">AI PROCESSING</h1>
-         <p className="font-space text-chrome-400 mb-12">Extracting embedded style components and body vectors...</p>
+         <p className="font-space text-chrome-400 mb-12">Extracting embedded style components from your past preferences...</p>
          <Loader message="CALCULATING COSINE SIMILARITY" />
       </div>
     );
@@ -72,8 +79,8 @@ const StyleAnalyzer = () => {
     <div className="pt-24 px-8 min-h-screen pb-12">
       <h1 className="font-orbitron text-3xl md:text-5xl mb-4 chrome-text text-center">STYLE ANALYZER</h1>
       <p className="text-center font-space text-chrome-400 mb-12 max-w-2xl mx-auto">
-        Upload a full-body or upper-body photo. Our AI will generate specialized embeddings 
-        to detect your aesthetic and map your proportions.
+        Upload a photo of your favorite past purchases or style inspiration. Our AI will generate specialized embeddings 
+        to detect your aesthetic preferences.
       </p>
       
       <div className="max-w-3xl mx-auto">

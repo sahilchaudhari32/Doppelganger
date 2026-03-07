@@ -1,12 +1,32 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { GlassCard } from '../ui/GlassCard';
 import { ChromeButton } from '../ui/ChromeButton';
-import { Shirt, Sparkles } from 'lucide-react';
+import { Shirt, Sparkles, TrendingUp, ThumbsUp, ThumbsDown, Bookmark, BookmarkCheck } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const ProductCard = ({ product }) => {
-  // Use placeholder image if backend image is not found or mock provided
-  const imgSource = product.image ? `http://localhost:5000${product.image}` : '/api/placeholder/300/400';
+  const navigate = useNavigate();
+  const { user, saveOutfit, removeOutfit } = useAuth();
+  const [feedback, setFeedback] = useState(null); // 'like' | 'dislike' | null
+
+  // Check if this product is already in the user's saved list
+  const isSaved = user.savedOutfits.some(item => item.id === product.id);
+
+  // Using image_url from the new requirements, falling back to original image handling or placeholder
+  const imgSource = product.image_url ? product.image_url : (product.image ? `http://localhost:5000${product.image}` : '/api/placeholder/300/400');
+
+  const handleTryOn = () => {
+    navigate(`/try-on?productId=${product.id}`);
+  };
+
+  const handleToggleSave = () => {
+    if (isSaved) {
+      removeOutfit(product.id);
+    } else {
+      saveOutfit(product);
+    }
+  };
 
   return (
     <GlassCard className="flex flex-col h-full overflow-hidden group p-0 pb-4">
@@ -31,19 +51,35 @@ const ProductCard = ({ product }) => {
 
       <div className="px-4 flex-1 flex flex-col">
         <h3 className="font-space text-chrome-100 font-bold text-lg mb-1 truncate">{product.name}</h3>
-        {product.score && (
-          <div className="flex items-center gap-1 text-neon-pink text-xs font-orbitron mb-4">
-             <Sparkles className="w-3 h-3" /> MATCH SCORE: {(product.score * 100).toFixed(0)}%
-          </div>
-        )}
         
-        <div className="mt-auto pt-4">
-            {/* The Critical Handshake Link to Vinit's Domain */}
-            <Link to={`/try-on?productId=${product.id || product._id || 1}`} className="block w-full">
-              <ChromeButton className="w-full py-2 text-sm flex items-center justify-center gap-2">
-                <Shirt className="w-4 h-4" /> VIRTUAL TRY-ON
-              </ChromeButton>
-            </Link>
+        <div className="flex items-center gap-4 text-xs font-orbitron mb-4">
+          {product.score && (
+            <div className="flex items-center gap-1 text-neon-pink">
+               <Sparkles className="w-3 h-3" /> MATCH: {(product.score * 100).toFixed(0)}%
+            </div>
+          )}
+          {product.popularity_score && (
+            <div className="flex items-center gap-1 text-neon-purple">
+               <TrendingUp className="w-3 h-3" /> SCORE: {product.popularity_score}
+            </div>
+          )}
+        </div>
+        
+        <div className="mt-auto pt-4 flex items-center gap-2">
+            <button 
+              onClick={handleToggleSave}
+              title={isSaved ? "Remove from Wardrobe" : "Save to Wardrobe"}
+              className={`p-2 rounded-md transition-all duration-300 border ${
+                isSaved 
+                  ? 'border-neon-cyan bg-neon-cyan/20 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.4)]' 
+                  : 'border-[rgba(255,255,255,0.1)] text-chrome-400 hover:text-white hover:border-[rgba(255,255,255,0.3)]'
+              }`}
+            >
+              {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+            </button>
+            <ChromeButton onClick={handleTryOn} className="flex-1 py-2 text-sm flex items-center justify-center gap-2">
+              <Shirt className="w-4 h-4" /> TRY IT ON
+            </ChromeButton>
         </div>
       </div>
     </GlassCard>
