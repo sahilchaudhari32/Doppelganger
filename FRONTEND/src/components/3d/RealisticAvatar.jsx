@@ -1,16 +1,36 @@
 import React, { useRef, useMemo, useEffect } from 'react';
+<<<<<<< HEAD
 import { useFrame } from '@react-three/fiber';
+=======
+import { useFrame, createPortal } from '@react-three/fiber';
+>>>>>>> pr-13
 import { useGLTF, useAnimations } from '@react-three/drei';
 import * as THREE from 'three';
 
 /**
  * RealisticAvatar — Replaces the primitive shape mannequin.
  * Loads a realistic rigged humanoid (Xbot), scales its bones dynamically based on biometrics,
+<<<<<<< HEAD
  * and changes its material color to simulate a seamless futuristic clothing layer.
  */
 export default function RealisticAvatar({ measurements = {}, clothingColor = '#00F0FF', style = 'streetwear' }) {
     // Load the GLTF. The path must be relative to the public folder.
     const { scene, animations, nodes, materials } = useGLTF('/models/avatar.glb');
+=======
+ * and attaches physical 3D geometric parts (cyber armor, visors, etc) based on the full outfit.
+ */
+export default function RealisticAvatar({ measurements = {}, outfitColors = {} }) {
+    // Load the GLTF. The path must be relative to the public folder.
+    const { scene, animations, nodes, materials } = useGLTF('/models/avatar.glb');
+    const shirtModel = useGLTF('/models/shirt_baked.glb');
+
+    useEffect(() => {
+        if (shirtModel?.nodes?.T_Shirt_male?.geometry) {
+            shirtModel.nodes.T_Shirt_male.geometry.computeBoundingBox();
+            console.log("SHIRT BOUNDING BOX:", JSON.stringify(shirtModel.nodes.T_Shirt_male.geometry.boundingBox));
+        }
+    }, [shirtModel]);
+>>>>>>> pr-13
 
     // Setup idle animation if present
     const { actions } = useAnimations(animations, scene);
@@ -61,6 +81,7 @@ export default function RealisticAvatar({ measurements = {}, clothingColor = '#0
 
     }, [measurements, nodes, scene]);
 
+<<<<<<< HEAD
     // Handle Clothing/Material color overrides
     const targetColor = useRef(new THREE.Color(clothingColor));
     const currentColor = useRef(new THREE.Color(clothingColor));
@@ -72,19 +93,67 @@ export default function RealisticAvatar({ measurements = {}, clothingColor = '#0
     useFrame(() => {
         // Smooth lerp color
         currentColor.current.lerp(targetColor.current, 0.1);
+=======
+    // Handle Clothing/Material color overrides for multiple layers
+    const targetColors = useRef({
+        outerwear: new THREE.Color(),
+        pants: new THREE.Color(),
+        accessory: new THREE.Color(),
+        shirt: new THREE.Color(),
+        footwear: new THREE.Color(),
+        baseSkin: new THREE.Color('#1a1a1a'),
+    });
+
+    const currentColors = useRef({
+        outerwear: new THREE.Color(),
+        pants: new THREE.Color(),
+        accessory: new THREE.Color(),
+        shirt: new THREE.Color(),
+        footwear: new THREE.Color(),
+        baseSkin: new THREE.Color('#1a1a1a'),
+    });
+
+    useEffect(() => {
+        ['outerwear', 'pants', 'accessory', 'shirt', 'footwear'].forEach(cat => {
+            if (outfitColors[cat]) {
+                targetColors.current[cat].set(outfitColors[cat]);
+            }
+        });
+        // If shirt exists, base outer shell reflects shirt color. Otherwise dark cyber skin.
+        if (outfitColors['shirt']) {
+            targetColors.current.baseSkin.set(outfitColors['shirt']);
+        } else {
+            targetColors.current.baseSkin.set('#1a1a1a');
+        }
+    }, [outfitColors]);
+
+    useFrame(() => {
+        // Smooth lerp colors
+        ['outerwear', 'pants', 'accessory', 'shirt', 'footwear', 'baseSkin'].forEach(cat => {
+            currentColors.current[cat].lerp(targetColors.current[cat], 0.1);
+        });
+>>>>>>> pr-13
 
         // Traverse scene and apply to specific Xbot materials (Alpha_Surface is the outer shell)
         scene.traverse((child) => {
             if (child.isMesh && child.material) {
+<<<<<<< HEAD
                 // Xbot has two main materials: 'Alpha_Surface' and 'Alpha_Joints'
                 if (child.material.name === 'Alpha_Surface') {
                     // Turn it into a neon fabric
                     child.material.color.copy(currentColor.current);
+=======
+                if (child.material.name === 'Alpha_Surface') {
+                    child.material.color.copy(currentColors.current.baseSkin);
+>>>>>>> pr-13
                     child.material.roughness = 0.4;
                     child.material.metalness = 0.3;
                     child.material.needsUpdate = true;
                 } else if (child.material.name === 'Alpha_Joints') {
+<<<<<<< HEAD
                     // Turn joints into dark chrome/cyber skeleton
+=======
+>>>>>>> pr-13
                     child.material.color.setHex(0x1a1a1a);
                     child.material.roughness = 0.2;
                     child.material.metalness = 0.8;
@@ -94,11 +163,132 @@ export default function RealisticAvatar({ measurements = {}, clothingColor = '#0
         });
     });
 
+<<<<<<< HEAD
     return (
         <group dispose={null}>
             <primitive object={scene} castShadow receiveShadow />
+=======
+    // Extract dynamic 3D parts based on active outfit
+    const outerwearParts = nodes?.mixamorigSpine2 && outfitColors['outerwear'] ? (
+        createPortal(
+            <group position={[0, -2, 2]} rotation={[0, 0, 0]}>
+                {/* Real T-Shirt Model mapped to act as Outerwear / Jacket */}
+                <mesh castShadow receiveShadow geometry={shirtModel?.nodes?.T_Shirt_male?.geometry} scale={[105, 105, 105]}>
+                    <meshStandardMaterial color={currentColors.current.outerwear} roughness={0.6} metalness={0.1} />
+                </mesh>
+                {/* Shoulder Guards */}
+                <mesh position={[-20, 25, -5]} rotation={[0, 0, 0.4]} castShadow receiveShadow>
+                    <cylinderGeometry args={[8, 8, 15, 16]} />
+                    <meshStandardMaterial color={currentColors.current.outerwear} roughness={0.3} metalness={0.7} />
+                </mesh>
+                <mesh position={[20, 25, -5]} rotation={[0, 0, -0.4]} castShadow receiveShadow>
+                    <cylinderGeometry args={[8, 8, 15, 16]} />
+                    <meshStandardMaterial color={currentColors.current.outerwear} roughness={0.3} metalness={0.7} />
+                </mesh>
+            </group>,
+            nodes.mixamorigSpine2
+        )
+    ) : null;
+
+    const pantsParts = nodes?.mixamorigHips && outfitColors['pants'] ? (
+        createPortal(
+            <group position={[0, -5, 5]}>
+                {/* Tech Belt */}
+                <mesh castShadow receiveShadow>
+                    <boxGeometry args={[40, 5, 25]} />
+                    <meshStandardMaterial color="#2d2d2d" roughness={0.5} metalness={0.9} />
+                </mesh>
+                <mesh position={[0, 0, 13]}>
+                    <boxGeometry args={[10, 8, 2]} />
+                    <meshStandardMaterial color={currentColors.current.pants} emissive={currentColors.current.pants} emissiveIntensity={0.5} />
+                </mesh>
+            </group>,
+            nodes.mixamorigHips
+        )
+    ) : null;
+
+    const accessoryParts = nodes?.mixamorigHead && outfitColors['accessory'] ? (
+        createPortal(
+            <group position={[0, 12, 10]}>
+                {/* Cyber Visor */}
+                <mesh castShadow receiveShadow>
+                    <boxGeometry args={[18, 5, 15]} />
+                    <meshStandardMaterial color={currentColors.current.accessory} metalness={0.9} roughness={0.1} opacity={0.8} transparent />
+                </mesh>
+            </group>,
+            nodes.mixamorigHead
+        )
+    ) : null;
+
+    const shirtParts = nodes?.mixamorigSpine2 && outfitColors['shirt'] ? (
+        createPortal(
+            <group position={[0, -2, 2]} rotation={[0, 0, 0]}>
+                {/* Real T-Shirt Model mapped to act as Shirt */}
+                <mesh castShadow receiveShadow geometry={shirtModel?.nodes?.T_Shirt_male?.geometry} scale={[95, 95, 95]}>
+                    <meshStandardMaterial color={currentColors.current.shirt} roughness={0.8} metalness={0.1} />
+                </mesh>
+            </group>,
+            nodes.mixamorigSpine2
+        )
+    ) : null;
+
+    const leftFootNode = scene.getObjectByName('mixamorigLeftFoot');
+    const rightFootNode = scene.getObjectByName('mixamorigRightFoot');
+
+    const footwearParts = leftFootNode && rightFootNode && outfitColors['footwear'] ? (
+        <>
+            {createPortal(
+                <group position={[0, 0, 4]}>
+                    <mesh position={[0, 6, -2]} castShadow>
+                        <cylinderGeometry args={[4.5, 4, 12, 16]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.6} metalness={0.2} />
+                    </mesh>
+                    <mesh position={[0, -2, 2]} castShadow>
+                        <boxGeometry args={[10, 6, 18]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} metalness={0.1} />
+                    </mesh>
+                    <mesh position={[0, -2, 11]} castShadow>
+                        <sphereGeometry args={[5, 16, 16]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} metalness={0.1} />
+                    </mesh>
+                </group>,
+                leftFootNode
+            )}
+            {createPortal(
+                <group position={[0, 0, 4]}>
+                    <mesh position={[0, 6, -2]} castShadow>
+                        <cylinderGeometry args={[4.5, 4, 12, 16]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.6} metalness={0.2} />
+                    </mesh>
+                    <mesh position={[0, -2, 2]} castShadow>
+                        <boxGeometry args={[10, 6, 18]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} metalness={0.1} />
+                    </mesh>
+                    <mesh position={[0, -2, 11]} castShadow>
+                        <sphereGeometry args={[5, 16, 16]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} metalness={0.1} />
+                    </mesh>
+                </group>,
+                rightFootNode
+            )}
+        </>
+    ) : null;
+
+    return (
+        <group dispose={null}>
+            <primitive object={scene} castShadow receiveShadow />
+            {outerwearParts}
+            {pantsParts}
+            {accessoryParts}
+            {shirtParts}
+            {footwearParts}
+>>>>>>> pr-13
         </group>
     );
 }
 
 useGLTF.preload('/models/avatar.glb');
+<<<<<<< HEAD
+=======
+useGLTF.preload('/models/shirt_baked.glb');
+>>>>>>> pr-13

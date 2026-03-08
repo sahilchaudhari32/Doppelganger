@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const db = require('../config/db');
 const { calculateBodyType } = require('../utils/bodyType');
+const db = require('../config/db');
 
 // --- Legacy User Routes ---
 const createUser = async (req, res, next) => {

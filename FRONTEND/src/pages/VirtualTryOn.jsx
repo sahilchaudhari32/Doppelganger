@@ -11,11 +11,15 @@ import { GlassCard } from '../components/ui/GlassCard';
 import Loader from '../components/ui/Loader';
 import Scene from '../components/3d/Scene';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import RealisticAvatar from '../components/3d/RealisticAvatar';
 =======
 import Avatar from '../components/3d/Avatar';
 import ClothingMesh from '../components/3d/ClothingMesh';
 >>>>>>> pr-12
+=======
+import RealisticAvatar from '../components/3d/RealisticAvatar';
+>>>>>>> pr-13
 import CanvasErrorBoundary from '../components/3d/CanvasErrorBoundary';
 
 /* ── Fallback style → color map (used when product has no `color` field) ── */
@@ -36,6 +40,7 @@ const VirtualTryOn = () => {
 
   const [allProducts, setAllProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [outfit, setOutfit] = useState({});
   const [loading, setLoading] = useState(true);
   const [showClothing, setShowClothing] = useState(true);
 
@@ -49,11 +54,26 @@ const VirtualTryOn = () => {
         const products = await getProducts();
         setAllProducts(products);
 
-        if (productId) {
-          const found = products.find(p => String(p.id) === String(productId));
-          setSelectedProduct(found || products[0] || null);
-        } else if (products.length > 0) {
-          setSelectedProduct(products[0]);
+        if (products.length > 0) {
+          // Fill initial outfit with one of each category
+          const initialOutfit = {};
+          products.forEach(p => {
+            if (['outerwear', 'pants', 'shirt', 'accessory', 'footwear', 'dress'].includes(p.category)) {
+              if (!initialOutfit[p.category]) initialOutfit[p.category] = p;
+            }
+          });
+          setOutfit(initialOutfit);
+
+          if (productId) {
+            const found = products.find(p => String(p._id) === String(productId) || String(p.id) === String(productId));
+            setSelectedProduct(found || products[0] || null);
+            if (found) {
+              initialOutfit[found.category] = found;
+              setOutfit({ ...initialOutfit });
+            }
+          } else {
+            setSelectedProduct(products[0]);
+          }
         }
       } catch (err) {
         console.error('VirtualTryOn: failed to load products', err);
@@ -75,10 +95,23 @@ const VirtualTryOn = () => {
     };
   }, [user?.biometrics]);
 
-  // Use product's own color, or fall back to style-based color
-  const clothingColor = selectedProduct
-    ? (selectedProduct.color || STYLE_COLORS[selectedProduct.style] || STYLE_COLORS.default)
-    : STYLE_COLORS.default;
+  // Map out the colors for each category in the current outfit
+  const outfitColors = useMemo(() => {
+    const colors = {};
+    ['outerwear', 'pants', 'shirt', 'accessory', 'footwear', 'dress'].forEach(cat => {
+      const p = outfit[cat];
+      colors[cat] = p ? (p.color || STYLE_COLORS[p.style] || STYLE_COLORS.default) : null;
+    });
+    return colors;
+  }, [outfit]);
+
+  const handleProductSelect = (product) => {
+    setSelectedProduct(product);
+    setOutfit(prev => ({
+      ...prev,
+      [product.category]: product
+    }));
+  };
 
   const productImage = selectedProduct
     ? (selectedProduct.image_url || selectedProduct.image || '')
@@ -117,14 +150,16 @@ const VirtualTryOn = () => {
 
             <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto lg:max-h-[calc(100vh-280px)] pb-2">
               {allProducts.map((product) => {
-                const isActive = selectedProduct?.id === product.id;
+                const uniqueId = product._id || product.id;
+                const isActive = (selectedProduct?._id || selectedProduct?.id) === uniqueId;
                 const pColor = product.color || STYLE_COLORS[product.style] || STYLE_COLORS.default;
 
                 return (
                   <button
-                    key={product.id}
-                    onClick={() => setSelectedProduct(product)}
+                    key={uniqueId}
+                    onClick={() => handleProductSelect(product)}
                     className={`flex-shrink-0 w-44 lg:w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-300 text-left ${isActive
+<<<<<<< HEAD
 <<<<<<< HEAD
                       ? 'bg-neon-cyan/10 border border-neon-cyan/50 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
                       : 'hover:bg-white/5 border border-transparent hover:border-white/10'
@@ -132,6 +167,10 @@ const VirtualTryOn = () => {
                         ? 'bg-neon-cyan/10 border border-neon-cyan/50 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
                         : 'hover:bg-white/5 border border-transparent hover:border-white/10'
 >>>>>>> pr-12
+=======
+                      ? 'bg-neon-cyan/10 border border-neon-cyan/50 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
+                      : 'hover:bg-white/5 border border-transparent hover:border-white/10'
+>>>>>>> pr-13
                       }`}
                   >
                     {/* Color swatch */}
@@ -165,12 +204,17 @@ const VirtualTryOn = () => {
                 title={showClothing ? 'Hide clothing' : 'Show clothing'}
                 className={`p-2.5 rounded-lg backdrop-blur-md transition-all duration-300 border ${showClothing
 <<<<<<< HEAD
+<<<<<<< HEAD
                   ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)]'
                   : 'bg-black/40 border-white/10 text-chrome-400 hover:text-chrome-200'
 =======
                     ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)]'
                     : 'bg-black/40 border-white/10 text-chrome-400 hover:text-chrome-200'
 >>>>>>> pr-12
+=======
+                  ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)]'
+                  : 'bg-black/40 border-white/10 text-chrome-400 hover:text-chrome-200'
+>>>>>>> pr-13
                   }`}
               >
                 <Eye className="w-4 h-4" />
@@ -206,6 +250,7 @@ const VirtualTryOn = () => {
             >
               <Scene>
 <<<<<<< HEAD
+<<<<<<< HEAD
                 {showClothing && selectedProduct ? (
                   <RealisticAvatar
                     measurements={measurements}
@@ -228,6 +273,17 @@ const VirtualTryOn = () => {
                     measurements={measurements}
                     visible={true}
 >>>>>>> pr-12
+=======
+                {showClothing && Object.keys(outfit).length > 0 ? (
+                  <RealisticAvatar
+                    measurements={measurements}
+                    outfitColors={outfitColors}
+                  />
+                ) : (
+                  <RealisticAvatar
+                    measurements={measurements}
+                    outfitColors={{}}
+>>>>>>> pr-13
                   />
                 )}
               </Scene>
@@ -258,7 +314,7 @@ const VirtualTryOn = () => {
                   <div className="flex items-center gap-2">
                     <div
                       className="w-5 h-5 rounded-md border border-white/20 shadow-inner"
-                      style={{ backgroundColor: clothingColor }}
+                      style={{ backgroundColor: outfitColors[selectedProduct?.category] }}
                     />
                     <span className="font-space text-xs text-chrome-400 uppercase">
                       {selectedProduct.style || 'N/A'}
