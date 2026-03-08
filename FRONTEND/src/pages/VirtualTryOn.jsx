@@ -10,16 +10,7 @@ import { getProducts } from '../services/productApi';
 import { GlassCard } from '../components/ui/GlassCard';
 import Loader from '../components/ui/Loader';
 import Scene from '../components/3d/Scene';
-<<<<<<< HEAD
-<<<<<<< HEAD
 import RealisticAvatar from '../components/3d/RealisticAvatar';
-=======
-import Avatar from '../components/3d/Avatar';
-import ClothingMesh from '../components/3d/ClothingMesh';
->>>>>>> pr-12
-=======
-import RealisticAvatar from '../components/3d/RealisticAvatar';
->>>>>>> pr-13
 import CanvasErrorBoundary from '../components/3d/CanvasErrorBoundary';
 
 /* ── Fallback style → color map (used when product has no `color` field) ── */
@@ -159,18 +150,8 @@ const VirtualTryOn = () => {
                     key={uniqueId}
                     onClick={() => handleProductSelect(product)}
                     className={`flex-shrink-0 w-44 lg:w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-300 text-left ${isActive
-<<<<<<< HEAD
-<<<<<<< HEAD
                       ? 'bg-neon-cyan/10 border border-neon-cyan/50 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
                       : 'hover:bg-white/5 border border-transparent hover:border-white/10'
-=======
-                        ? 'bg-neon-cyan/10 border border-neon-cyan/50 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
-                        : 'hover:bg-white/5 border border-transparent hover:border-white/10'
->>>>>>> pr-12
-=======
-                      ? 'bg-neon-cyan/10 border border-neon-cyan/50 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
-                      : 'hover:bg-white/5 border border-transparent hover:border-white/10'
->>>>>>> pr-13
                       }`}
                   >
                     {/* Color swatch */}
@@ -203,18 +184,8 @@ const VirtualTryOn = () => {
                 onClick={() => setShowClothing(!showClothing)}
                 title={showClothing ? 'Hide clothing' : 'Show clothing'}
                 className={`p-2.5 rounded-lg backdrop-blur-md transition-all duration-300 border ${showClothing
-<<<<<<< HEAD
-<<<<<<< HEAD
                   ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)]'
                   : 'bg-black/40 border-white/10 text-chrome-400 hover:text-chrome-200'
-=======
-                    ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)]'
-                    : 'bg-black/40 border-white/10 text-chrome-400 hover:text-chrome-200'
->>>>>>> pr-12
-=======
-                  ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)]'
-                  : 'bg-black/40 border-white/10 text-chrome-400 hover:text-chrome-200'
->>>>>>> pr-13
                   }`}
               >
                 <Eye className="w-4 h-4" />
@@ -249,31 +220,6 @@ const VirtualTryOn = () => {
               productName={selectedProduct?.name}
             >
               <Scene>
-<<<<<<< HEAD
-<<<<<<< HEAD
-                {showClothing && selectedProduct ? (
-                  <RealisticAvatar
-                    measurements={measurements}
-                    clothingColor={clothingColor}
-                    style={selectedProduct.style || 'default'}
-                  />
-                ) : (
-                  <RealisticAvatar
-                    measurements={measurements}
-                    clothingColor="#1a1a1a"
-=======
-                {/* Avatar = STABLE body that never changes on product swap */}
-                <Avatar measurements={measurements} />
-
-                {/* ClothingMesh = DYNAMIC overlay that changes per product */}
-                {showClothing && selectedProduct && (
-                  <ClothingMesh
-                    style={selectedProduct.style || 'default'}
-                    color={clothingColor}
-                    measurements={measurements}
-                    visible={true}
->>>>>>> pr-12
-=======
                 {showClothing && Object.keys(outfit).length > 0 ? (
                   <RealisticAvatar
                     measurements={measurements}
@@ -283,7 +229,6 @@ const VirtualTryOn = () => {
                   <RealisticAvatar
                     measurements={measurements}
                     outfitColors={{}}
->>>>>>> pr-13
                   />
                 )}
               </Scene>
