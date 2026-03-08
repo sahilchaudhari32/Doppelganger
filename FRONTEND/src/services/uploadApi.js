@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export const uploadImage = async (inspirations, purchases) => {
   const formData = new FormData();
@@ -14,7 +14,7 @@ export const uploadImage = async (inspirations, purchases) => {
   }
 
   try {
-    const response = await axios.post(`${API_URL}/upload`, formData, {
+    const response = await axios.post(`${API_BASE}/api/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
