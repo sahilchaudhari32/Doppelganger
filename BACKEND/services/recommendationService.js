@@ -1,5 +1,6 @@
 const { cosineSimilarity } = require('../utils/similarity');
 const { checkBodyTypeMatch } = require('../utils/bodyType');
+const { rankProducts } = require('../utils/rankingAlgorithm');
 const Design = require('../models/designModel');
 const User = require('../models/userModel');
 const fs = require('fs');
@@ -7,18 +8,16 @@ const path = require('path');
 
 const getRecommendations = async (userId, tags) => {
   try {
+    // 1. Load user for body type matching
     let user;
     try {
       user = await User.findById(userId);
     } catch (dbError) {
       console.warn('Database user lookup failed, using default user profile');
-      user = { body_type: 'rectangle' }; // Fallback
     }
+    if (!user) user = { body_type: 'rectangle', biometrics_weight: null };
 
-    if (!user) {
-      user = { body_type: 'rectangle' };
-    }
-
+    // 2. Load products (MongoDB with JSON fallback)
     let products;
     try {
       products = await Design.find();
@@ -29,38 +28,31 @@ const getRecommendations = async (userId, tags) => {
       products = JSON.parse(productsData);
     }
 
-    const scoredProducts = products.map(product => {
-      // 1. Calculate Style Match
-      // If product has embedding_vector, use cosine similarity (mocking tags -> vector)
-      // If not, use simple tag inclusion
+    // 3. Style + body type pre-scoring (enriches data before antigravity pass)
+    const enriched = products.map(product => {
       let styleSimilarity = 0;
       if (product.aesthetic_vector && product.aesthetic_vector.length > 0) {
-        const productEmbedding = product.aesthetic_vector;
-
-        // Mocking a vector from tags for comparison if tags are provided
-        // In a real app, an AI service would convert tags/query to a vector
-        const mockUserEmbedding = [0.1, 0.2, 0.3, 0.4]; // Simplified
-        styleSimilarity = cosineSimilarity(mockUserEmbedding, productEmbedding);
+        // Use cosine similarity if embedding available
+        const mockUserEmbedding = [0.1, 0.2, 0.3, 0.4];
+        styleSimilarity = cosineSimilarity(mockUserEmbedding, product.aesthetic_vector);
       } else {
         styleSimilarity = tags.includes(product.style) ? 1.0 : 0.2;
       }
 
-      // 2. Calculate Body Type Match
-      const bodyTypeMatch = checkBodyTypeMatch(user.body_type, product.category || 'shirt');
+      const bodyTypeMultiplier = checkBodyTypeMatch(user.body_type, product.category || 'shirt');
 
-      // 3. Final Score
-      const popularity = product.popularity_score || product.popularity || 5;
-      const score = (0.5 * styleSimilarity) + (0.3 * bodyTypeMatch) + (0.2 * (popularity / 10));
-
+      // Attach as recent_interactions proxy so antigravity algo can use it
       return {
         ...product,
-        score: parseFloat(score.toFixed(4))
+        recent_interactions: Math.round(styleSimilarity * bodyTypeMultiplier * 10),
+        total_interactions: product.total_interactions || (product.popularity_score || 5) * 2
       };
     });
 
-    return scoredProducts
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
+    // 4. Apply antigravity ranking (time-decay + velocity + style match)
+    const ranked = rankProducts(enriched, tags);
+
+    return ranked.slice(0, 10);
 
   } catch (error) {
     console.error('Recommendation Error:', error.message);
@@ -69,3 +61,4 @@ const getRecommendations = async (userId, tags) => {
 };
 
 module.exports = { getRecommendations };
+
