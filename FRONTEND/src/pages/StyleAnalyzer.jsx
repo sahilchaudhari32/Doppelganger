@@ -99,15 +99,21 @@ const StyleAnalyzer = () => {
     setError(null);
 
     try {
-      // Send arrays to updated backend service
+      // Send arrays to Together AI pipeline
       const data = await uploadImage(inspirations, purchases);
 
-      // Navigate to recommendations passing tags via query param
+      // Navigate to recommendations with the full AI response
       setTimeout(() => {
         setIsScanning(false);
-        const tags = data?.tags || ['futuristic', 'cyberpunk', 'y2k']; // Fallback for testing
+        const tags = data?.analysis_result?.detected_styles || ['futuristic', 'cyberpunk'];
         const tagQuery = tags.join(',');
-        navigate(`/recommendations?tags=${encodeURIComponent(tagQuery)}`);
+        navigate(`/recommendations?tags=${encodeURIComponent(tagQuery)}`, {
+          state: {
+            generatedDesign: data.generated_design,
+            analysisResult: data.analysis_result,
+            recommendations: data.recommendations
+          }
+        });
       }, 2000);
 
     } catch (err) {

@@ -14,7 +14,7 @@ export const uploadImage = async (inspirations, purchases) => {
   }
 
   try {
-    const response = await axios.post(`${API_BASE}/api/upload`, formData, {
+    const response = await axios.post(`${API_BASE}/api/analyze/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
