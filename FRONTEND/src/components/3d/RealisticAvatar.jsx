@@ -6,9 +6,9 @@ import * as THREE from 'three';
 /**
  * RealisticAvatar — Replaces the primitive shape mannequin.
  * Loads a realistic rigged humanoid (Xbot), scales its bones dynamically based on biometrics,
- * and attaches physical 3D geometric parts (cyber armor, visors, etc) based on the garment category.
+ * and attaches physical 3D geometric parts (cyber armor, visors, etc) based on the full outfit.
  */
-export default function RealisticAvatar({ measurements = {}, clothingColor = '#00F0FF', style = 'streetwear', category = 'none' }) {
+export default function RealisticAvatar({ measurements = {}, outfitColors = {} }) {
     // Load the GLTF. The path must be relative to the public folder.
     const { scene, animations, nodes, materials } = useGLTF('/models/avatar.glb');
 
@@ -61,30 +61,54 @@ export default function RealisticAvatar({ measurements = {}, clothingColor = '#0
 
     }, [measurements, nodes, scene]);
 
-    // Handle Clothing/Material color overrides
-    const targetColor = useRef(new THREE.Color(clothingColor));
-    const currentColor = useRef(new THREE.Color(clothingColor));
+    // Handle Clothing/Material color overrides for multiple layers
+    const targetColors = useRef({
+        outerwear: new THREE.Color(),
+        pants: new THREE.Color(),
+        accessory: new THREE.Color(),
+        shirt: new THREE.Color(),
+        footwear: new THREE.Color(),
+        baseSkin: new THREE.Color('#1a1a1a'),
+    });
+
+    const currentColors = useRef({
+        outerwear: new THREE.Color(),
+        pants: new THREE.Color(),
+        accessory: new THREE.Color(),
+        shirt: new THREE.Color(),
+        footwear: new THREE.Color(),
+        baseSkin: new THREE.Color('#1a1a1a'),
+    });
 
     useEffect(() => {
-        targetColor.current.set(clothingColor);
-    }, [clothingColor]);
+        ['outerwear', 'pants', 'accessory', 'shirt', 'footwear'].forEach(cat => {
+            if (outfitColors[cat]) {
+                targetColors.current[cat].set(outfitColors[cat]);
+            }
+        });
+        // If shirt exists, base outer shell reflects shirt color. Otherwise dark cyber skin.
+        if (outfitColors['shirt']) {
+            targetColors.current.baseSkin.set(outfitColors['shirt']);
+        } else {
+            targetColors.current.baseSkin.set('#1a1a1a');
+        }
+    }, [outfitColors]);
 
     useFrame(() => {
-        // Smooth lerp color
-        currentColor.current.lerp(targetColor.current, 0.1);
+        // Smooth lerp colors
+        ['outerwear', 'pants', 'accessory', 'shirt', 'footwear', 'baseSkin'].forEach(cat => {
+            currentColors.current[cat].lerp(targetColors.current[cat], 0.1);
+        });
 
         // Traverse scene and apply to specific Xbot materials (Alpha_Surface is the outer shell)
         scene.traverse((child) => {
             if (child.isMesh && child.material) {
-                // Xbot has two main materials: 'Alpha_Surface' and 'Alpha_Joints'
                 if (child.material.name === 'Alpha_Surface') {
-                    // Turn it into a neon fabric
-                    child.material.color.copy(currentColor.current);
+                    child.material.color.copy(currentColors.current.baseSkin);
                     child.material.roughness = 0.4;
                     child.material.metalness = 0.3;
                     child.material.needsUpdate = true;
                 } else if (child.material.name === 'Alpha_Joints') {
-                    // Turn joints into dark chrome/cyber skeleton
                     child.material.color.setHex(0x1a1a1a);
                     child.material.roughness = 0.2;
                     child.material.metalness = 0.8;
@@ -94,30 +118,30 @@ export default function RealisticAvatar({ measurements = {}, clothingColor = '#0
         });
     });
 
-    // Extract dynamic 3D parts based on category
-    const outerwearParts = nodes?.mixamorigSpine2 && ['outerwear', 'jacket', 'hoodie'].includes(category) ? (
+    // Extract dynamic 3D parts based on active outfit
+    const outerwearParts = nodes?.mixamorigSpine2 && outfitColors['outerwear'] ? (
         createPortal(
             <group position={[0, 15, 5]} rotation={[0.2, 0, 0]}>
                 {/* Chest Armor Plate */}
                 <mesh castShadow receiveShadow>
                     <boxGeometry args={[35, 25, 10]} />
-                    <meshStandardMaterial color={currentColor.current} roughness={0.2} metalness={0.8} />
+                    <meshStandardMaterial color={currentColors.current.outerwear} roughness={0.2} metalness={0.8} />
                 </mesh>
                 {/* Shoulder Guards */}
                 <mesh position={[-20, 10, -5]} rotation={[0, 0, 0.4]} castShadow receiveShadow>
                     <cylinderGeometry args={[8, 8, 15, 16]} />
-                    <meshStandardMaterial color={currentColor.current} roughness={0.3} metalness={0.7} />
+                    <meshStandardMaterial color={currentColors.current.outerwear} roughness={0.3} metalness={0.7} />
                 </mesh>
                 <mesh position={[20, 10, -5]} rotation={[0, 0, -0.4]} castShadow receiveShadow>
                     <cylinderGeometry args={[8, 8, 15, 16]} />
-                    <meshStandardMaterial color={currentColor.current} roughness={0.3} metalness={0.7} />
+                    <meshStandardMaterial color={currentColors.current.outerwear} roughness={0.3} metalness={0.7} />
                 </mesh>
             </group>,
             nodes.mixamorigSpine2
         )
     ) : null;
 
-    const pantsParts = nodes?.mixamorigHips && ['pants', 'shorts', 'jeans'].includes(category) ? (
+    const pantsParts = nodes?.mixamorigHips && outfitColors['pants'] ? (
         createPortal(
             <group position={[0, -5, 5]}>
                 {/* Tech Belt */}
@@ -127,37 +151,59 @@ export default function RealisticAvatar({ measurements = {}, clothingColor = '#0
                 </mesh>
                 <mesh position={[0, 0, 13]}>
                     <boxGeometry args={[10, 8, 2]} />
-                    <meshStandardMaterial color={currentColor.current} emissive={currentColor.current} emissiveIntensity={0.5} />
+                    <meshStandardMaterial color={currentColors.current.pants} emissive={currentColors.current.pants} emissiveIntensity={0.5} />
                 </mesh>
             </group>,
             nodes.mixamorigHips
         )
     ) : null;
 
-    const accessoryParts = nodes?.mixamorigHead && category === 'accessory' ? (
+    const accessoryParts = nodes?.mixamorigHead && outfitColors['accessory'] ? (
         createPortal(
             <group position={[0, 12, 10]}>
                 {/* Cyber Visor */}
                 <mesh castShadow receiveShadow>
                     <boxGeometry args={[18, 5, 15]} />
-                    <meshStandardMaterial color={currentColor.current} metalness={0.9} roughness={0.1} opacity={0.8} transparent />
+                    <meshStandardMaterial color={currentColors.current.accessory} metalness={0.9} roughness={0.1} opacity={0.8} transparent />
                 </mesh>
             </group>,
             nodes.mixamorigHead
         )
     ) : null;
 
-    const shirtParts = nodes?.mixamorigSpine2 && ['shirt', 'tshirt'].includes(category) ? (
+    const shirtParts = nodes?.mixamorigSpine2 && outfitColors['shirt'] ? (
         createPortal(
             <group position={[0, 8, 8]}>
                 {/* Glowing Core reactor / Base Shirt layer proxy */}
                 <mesh castShadow receiveShadow>
                     <cylinderGeometry args={[8, 8, 4, 32]} />
-                    <meshStandardMaterial color={currentColor.current} emissive={currentColor.current} emissiveIntensity={0.8} />
+                    <meshStandardMaterial color={currentColors.current.shirt} emissive={currentColors.current.shirt} emissiveIntensity={0.8} />
                 </mesh>
             </group>,
             nodes.mixamorigSpine2
         )
+    ) : null;
+
+    const leftFootNode = scene.getObjectByName('mixamorigLeftFoot');
+    const rightFootNode = scene.getObjectByName('mixamorigRightFoot');
+
+    const footwearParts = leftFootNode && rightFootNode && outfitColors['footwear'] ? (
+        <>
+            {createPortal(
+                <group position={[0, -5, 5]}>
+                    <boxGeometry args={[10, 12, 25]} />
+                    <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} />
+                </group>,
+                leftFootNode
+            )}
+            {createPortal(
+                <group position={[0, -5, 5]}>
+                    <boxGeometry args={[10, 12, 25]} />
+                    <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} />
+                </group>,
+                rightFootNode
+            )}
+        </>
     ) : null;
 
     return (
@@ -167,6 +213,7 @@ export default function RealisticAvatar({ measurements = {}, clothingColor = '#0
             {pantsParts}
             {accessoryParts}
             {shirtParts}
+            {footwearParts}
         </group>
     );
 }
