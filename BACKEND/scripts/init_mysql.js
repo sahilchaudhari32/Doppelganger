@@ -22,24 +22,52 @@ const initMySQL = async () => {
         `);
         console.log('✅ Users table ready');
 
-        // 2. Saved Wardrobes Table
+        // 2. Designs Table (MySQL Metadata)
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS designs (
+                id VARCHAR(50) PRIMARY KEY, -- Using VARCHAR to accommodate MongoDB IDs or UUIDs
+                name VARCHAR(255) NOT NULL,
+                image_url VARCHAR(500),
+                author_id INT NULL,
+                is_published BOOLEAN DEFAULT FALSE,
+                likes_count INT DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL
+            )
+        `);
+        console.log('✅ Designs table ready');
+
+        // 3. Design Tags Table
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS design_tags (
+                design_id VARCHAR(50) NOT NULL,
+                tag_name VARCHAR(50) NOT NULL,
+                PRIMARY KEY (design_id, tag_name),
+                FOREIGN KEY (design_id) REFERENCES designs(id) ON DELETE CASCADE
+            )
+        `);
+        console.log('✅ Design Tags table ready');
+
+        // 4. Saved Wardrobes Table
         await db.execute(`
             CREATE TABLE IF NOT EXISTS saved_wardrobes (
                 user_id INT NOT NULL,
                 design_id VARCHAR(50) NOT NULL,
                 saved_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (user_id, design_id),
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (design_id) REFERENCES designs(id) ON DELETE CASCADE
             )
         `);
         console.log('✅ Saved Wardrobes table ready');
 
-        // 3. Community Feed Table
+        // 5. Community Feed Table
         await db.execute(`
             CREATE TABLE IF NOT EXISTS community_feed (
                 design_id VARCHAR(50) PRIMARY KEY,
                 author_username VARCHAR(50) NOT NULL,
-                published_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                published_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (design_id) REFERENCES designs(id) ON DELETE CASCADE
             )
         `);
         console.log('✅ Community Feed table ready');

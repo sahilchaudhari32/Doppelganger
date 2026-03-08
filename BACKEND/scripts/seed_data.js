@@ -75,6 +75,17 @@ const seedData = async () => {
                 popularity_score: 8
             },
             {
+                name: 'Casual Hoodie',
+                category: 'outerwear',
+                style: 'casual',
+                image_url: '/images/hoodie.jpg',
+                tags: ['casual', 'comfortable', 'hoodie'],
+                aesthetic_vector: [0.3, 0.4, 0.2, 0.1],
+                is_published: true,
+                likes_count: 45,
+                popularity_score: 6
+            },
+            {
                 name: 'Formal Blazer',
                 category: 'outerwear',
                 style: 'formal',
@@ -86,15 +97,103 @@ const seedData = async () => {
                 popularity_score: 9
             },
             {
-                name: 'Cyber Chrome Boots',
-                category: 'footwear',
-                style: 'cyberpunk',
-                image_url: '/images/boots.jpg',
-                tags: ['cyberpunk', 'chrome', 'futuristic'],
-                aesthetic_vector: [0.9, 0.1, 0.8, 0.4],
-                is_published: false,
-                likes_count: 450,
+                name: 'Sportswear Track Pants',
+                category: 'pants',
+                style: 'sportswear',
+                image_url: '/images/track_pants.jpg',
+                tags: ['sport', 'active', 'pants'],
+                aesthetic_vector: [0.2, 0.1, 0.7, 0.6],
+                is_published: true,
+                likes_count: 50,
+                popularity_score: 7
+            },
+            {
+                name: 'Vintage Denim',
+                category: 'pants',
+                style: 'vintage',
+                image_url: '/images/denim.jpg',
+                tags: ['vintage', 'denim', 'classic'],
+                aesthetic_vector: [0.4, 0.5, 0.3, 0.8],
+                is_published: true,
+                likes_count: 95,
+                popularity_score: 8
+            },
+            {
+                name: 'Summer Shorts',
+                category: 'pants',
+                style: 'summer',
+                image_url: '/images/shorts.jpg',
+                tags: ['summer', 'beach', 'casual'],
+                aesthetic_vector: [0.1, 0.2, 0.5, 0.4],
+                is_published: true,
+                likes_count: 30,
+                popularity_score: 5
+            },
+            {
+                name: 'Elegant Evening Gown',
+                category: 'dress',
+                style: 'formal',
+                image_url: '/images/gown.jpg',
+                tags: ['elegant', 'formal', 'night'],
+                aesthetic_vector: [0.05, 0.95, 0.1, 0.2],
+                is_published: true,
+                likes_count: 200,
                 popularity_score: 10
+            },
+            {
+                name: 'Retro Sunglasses',
+                category: 'accessory',
+                style: 'vintage',
+                image_url: '/images/sunglasses.jpg',
+                tags: ['retro', 'vintage', 'summer'],
+                aesthetic_vector: [0.5, 0.3, 0.2, 0.7],
+                is_published: true,
+                likes_count: 150,
+                popularity_score: 7
+            },
+            {
+                name: 'Active Sneakers',
+                category: 'footwear',
+                style: 'sportswear',
+                image_url: '/images/sneakers.jpg',
+                tags: ['sport', 'active', 'footwear'],
+                aesthetic_vector: [0.2, 0.1, 0.9, 0.5],
+                is_published: true,
+                likes_count: 180,
+                popularity_score: 9
+            },
+            {
+                name: 'Denim Jacket',
+                category: 'outerwear',
+                style: 'casual',
+                image_url: '/images/denim_jacket.jpg',
+                tags: ['denim', 'casual', 'classic'],
+                aesthetic_vector: [0.4, 0.4, 0.3, 0.5],
+                is_published: true,
+                likes_count: 110,
+                popularity_score: 8
+            },
+            {
+                name: 'Graphic Tee',
+                category: 'shirt',
+                style: 'streetwear',
+                image_url: '/images/graphic_tee.jpg',
+                tags: ['graphic', 'streetwear', 'urban'],
+                aesthetic_vector: [0.7, 0.2, 0.2, 0.6],
+                is_published: true,
+                likes_count: 160,
+                popularity_score: 9
+            },
+            {
+                name: 'Beach Shirt',
+                category: 'shirt',
+                style: 'summer',
+                image_url: '/images/beach_shirt.jpg',
+                tags: ['summer', 'beach', 'casual'],
+                aesthetic_vector: [0.2, 0.3, 0.6, 0.4],
+                is_published: true,
+                likes_count: 75,
+                popularity_score: 6
             }
         ];
 
@@ -102,8 +201,27 @@ const seedData = async () => {
         for (const designData of designs) {
             const design = new Design(designData);
             await design.save();
-            designIds.push(design._id.toString());
-            console.log(`    Design ${design.name} added (ID: ${design._id})`);
+            const dId = design._id.toString();
+            designIds.push(dId);
+            console.log(`    Design ${design.name} added to MongoDB (ID: ${dId})`);
+
+            // Also add to MySQL metadata table
+            try {
+                await db.execute(
+                    'INSERT IGNORE INTO designs (id, name, image_url, is_published, likes_count) VALUES (?, ?, ?, ?, ?)',
+                    [dId, designData.name, designData.image_url, designData.is_published, designData.likes_count]
+                );
+
+                // Add tags to MySQL junction table
+                for (const tag of designData.tags) {
+                    await db.execute(
+                        'INSERT IGNORE INTO design_tags (design_id, tag_name) VALUES (?, ?)',
+                        [dId, tag]
+                    );
+                }
+            } catch (mysqlErr) {
+                console.warn(`    MySQL metadata sync failed for ${designData.name}: ${mysqlErr.message}`);
+            }
         }
 
         // 5. Seed Saved Wardrobes (MySQL)
