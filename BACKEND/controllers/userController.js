@@ -1,36 +1,36 @@
 const User = require('../models/userModel');
 const db = require('../config/db');
+const bcrypt = require('bcryptjs');
 const { calculateBodyType } = require('../utils/bodyType');
 
 const createUser = async (req, res, next) => {
     try {
-        const { username, email, password_hash, height, weight, shoulder, waist } = req.body;
+        const { username, email, password, height, weight, shoulder, waist } = req.body;
 
-        if (!username || !email || !password_hash || !height || !weight || !shoulder || !waist) {
+        if (!username || !email || !password || !height || !weight || !shoulder || !waist) {
             res.status(400);
-            throw new Error('Please provide all user details (username, email, password_hash, height, weight, shoulder, waist)');
+            throw new Error('Please provide all user details (username, email, password, height, weight, shoulder, waist)');
         }
+
+        // Hash password for security (consistent with registerUser in authController)
+        const salt = await bcrypt.genSalt(10);
+        const password_hash = await bcrypt.hash(password, salt);
 
         // Automated body type calculation from PRD Section 10
         const body_type = calculateBodyType(shoulder, waist);
 
-        let userId;
-        try {
-            userId = await User.create({
-                username,
-                email,
-                password_hash,
-                height,
-                weight,
-                shoulder,
-                waist,
-                body_type,
-                level: 1
-            });
-        } catch (dbError) {
-            console.warn('Database user creation failed, returning mock success:', dbError.message);
-            userId = Date.now(); // Mock ID for demo purposes
-        }
+        // No mock fallback — real database errors will surface
+        const userId = await User.create({
+            username,
+            email,
+            password_hash,
+            height,
+            weight,
+            shoulder,
+            waist,
+            body_type,
+            level: 1
+        });
 
         res.status(201).json({
             message: 'User created successfully',
@@ -41,6 +41,7 @@ const createUser = async (req, res, next) => {
         next(error);
     }
 };
+
 
 const getUserProfile = async (req, res, next) => {
     try {
