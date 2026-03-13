@@ -30,8 +30,8 @@ export const AuthProvider = ({ children }) => {
         if (parsed.isGuest) {
            parsed = {
              id: 1,
-             username: 'Rishab',
-             email: 'rishab@local.dev',
+             username: 'Sahil',
+             email: 'Sahil@local.dev',
              biometrics: null,
              savedOutfits: [],
              isGuest: false,
@@ -40,9 +40,9 @@ export const AuthProvider = ({ children }) => {
         }
       }
       
-      // The user requested to change the locally saved "neon_runner" to "rishab"
+      // The user requested to change the locally saved "neon_runner" to "sahil"
       if (parsed.username && parsed.username.toLowerCase() === 'neon_runner') {
-        parsed.username = 'Rishab';
+        parsed.username = 'Sahil';
         localStorage.setItem('styleforge_user', JSON.stringify(parsed));
       }
       
