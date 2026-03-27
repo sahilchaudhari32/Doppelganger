@@ -1,0 +1,41 @@
+services:
+  # Backend Service
+  - type: web
+    name: fashion-ai-backend
+    env: node
+    plan: free
+    rootDir: BACKEND
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: HF_TOKEN
+        sync: false
+
+  # Frontend Static Site
+  - type: web
+    name: fashion-ai-frontend
+    env: static
+    plan: free
+    rootDir: FRONTEND
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: fashion-ai-backend
+          type: web
+          property: host

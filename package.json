@@ -1,6 +1,9 @@
 {
+  "name": "doppelganger",
+  "version": "1.0.0",
+  "private": true,
   "scripts": {
-    "start": "node server.js"
+    "build": "cd FRONTEND && npm install && npm run build"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -11,8 +14,5 @@
     "mongoose": "^8.12.1",
     "multer": "^2.1.1",
     "mysql2": "^3.19.0"
-  },
-  "devDependencies": {
-    "axios": "^1.13.6"
   }
 }

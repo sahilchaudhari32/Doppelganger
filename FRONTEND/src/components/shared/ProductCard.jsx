@@ -14,7 +14,8 @@ const ProductCard = ({ product }) => {
   const isSaved = user.savedOutfits.some(item => item.id === product.id);
 
   // Using image_url from the new requirements, falling back to original image handling or placeholder
-  const imgSource = product.image_url ? product.image_url : (product.image ? `http://localhost:5000${product.image}` : '/api/placeholder/300/400');
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const imgSource = product.image_url ? product.image_url : (product.image ? `${API_URL}${product.image}` : '/api/placeholder/300/400');
 
   const handleTryOn = () => {
     navigate(`/try-on?productId=${product.id}`);
@@ -32,7 +33,7 @@ const ProductCard = ({ product }) => {
     setFeedback(type);
     try {
       // Bonus: Send to backend for Collaborative Filtering
-      await fetch('http://localhost:5000/api/interactions', {
+      await fetch(`${API_URL}/api/interactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId: product.id, type }) // type: 'like' | 'dislike'
