@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/scissors.svg" width="80" alt="StyleForge Logo" />
-  
+
   # 🕶️ STYLEFORGE
   
   *The ultimate cyber-wardrobe network. Analyze your past purchases, generate physical coordinate vectors, and virtually try on user-published styles in a fully immersive 3D mirror.*
